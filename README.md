@@ -1,2 +1,5 @@
-# megabyte
-Meta Megabyte
+# Meta MegaByte
+
+## About
+
+Meta MegaByte model experiments.
