@@ -282,6 +282,34 @@ class MEGABYTE(nn.Module):
         self.to_logits = nn.Linear(fine_dim, num_tokens)
         self.pad_id = pad_id
 
+        self.apply(self._init_weights)
+    
+    # def _init_weights(self, module):
+    #     if isinstance(module, nn.Linear):
+    #         # torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+    #         torch.nn.init.normal_(module.weight, mean=0.0, std=0.006)
+
+    #         if module.bias is not None:
+    #             torch.nn.init.zeros_(module.bias)
+    #     elif isinstance(module, nn.Embedding):
+    #         # torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+    #         torch.nn.init.normal_(module.weight, mean=0.0, std=0.006)
+
+    def _init_weights(self, module):
+        # Weight initialisation from MEGABYTE paper, A.1 Training Details
+        if isinstance(module, nn.Linear) or isinstance(module, nn.Embedding):
+            # Init with normal distribution
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.006)
+            
+            # Truncate weights to lie within two standard deviations
+            with torch.no_grad():
+                module.weight[module.weight > 0.012] = 0.012
+                module.weight[module.weight < -0.012] = -0.012
+
+            # Bias is initialized to zero if exists
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+
     def generate(self, prime = None, filter_thres = 0.9, temperature = 1., default_batch_size = 1):
         total_seq_len = reduce_mult(self.max_seq_len)
         device = next(self.parameters()).device
