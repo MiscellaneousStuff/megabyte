@@ -10,6 +10,7 @@ from Andrej Kapathy
 ## TODO
 
 - [ ] Create training script
+   - [x] Add Neptune.ai logging
 
 ## Pre-Trained Models
 

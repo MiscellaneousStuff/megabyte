@@ -105,7 +105,6 @@ class RMSNorm(nn.Module):
         return x / norm.clamp(min = self.eps) * self.g
 
 # helper classes
-
 def FeedForward(*, dim, mult = 4, dropout = 0.):
     return nn.Sequential(
         RMSNorm(dim),
@@ -194,7 +193,6 @@ class Transformer(nn.Module):
         return self.norm(x)
 
 # main class
-
 class MEGABYTE(nn.Module):
 
     @beartype
@@ -282,7 +280,22 @@ class MEGABYTE(nn.Module):
         self.to_logits = nn.Linear(fine_dim, num_tokens)
         self.pad_id = pad_id
 
+        # report number of parameters
+        print("number of parameters: %.2fM" % (self.get_num_params()/1e6,))
+        
         self.apply(self._init_weights)
+
+    def get_num_params(self, non_embedding=True):
+        """
+        Return the number of parameters in the model.
+        For non-embedding count (default), the position embeddings get subtracted.
+        The token embeddings would too, except due to the parameter sharing these
+        params are actually used as weights in the final layer, so we include them.
+        """
+        n_params = sum(p.numel() for p in self.parameters())
+        # if non_embedding:
+        #     n_params -= self.transformer.wpe.weight.numel()
+        return n_params
     
     # def _init_weights(self, module):
     #     if isinstance(module, nn.Linear):
@@ -297,7 +310,7 @@ class MEGABYTE(nn.Module):
 
     def _init_weights(self, module):
         # Weight initialisation from MEGABYTE paper, A.1 Training Details
-        if isinstance(module, nn.Linear) or isinstance(module, nn.Embedding):
+        if isinstance(module, nn.Linear): #  or isinstance(module, nn.Embedding):
             # Init with normal distribution
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.006)
             
