@@ -4,7 +4,8 @@
 
 Meta MegaByte model experiments. \
 Based on [MEGABYTE-pytorch](https://github.com/lucidrains/MEGABYTE-pytorch) 
-repository from Lucidrains.
+repository from Lucidrains and [nanoGPT](https://github.com/karpathy/nanoGPT)
+from Andrej Kapathy
 
 ## TODO
 
