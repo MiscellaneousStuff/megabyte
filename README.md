@@ -1,5 +1,15 @@
 # Meta MegaByte
 
+## About
+
+Meta MegaByte model experiments. \
+Based on [MEGABYTE-pytorch](https://github.com/lucidrains/MEGABYTE-pytorch) 
+repository from Lucidrains.
+
+## TODO
+
+- [ ] Create training script
+
 ## Pre-Trained Models
 
 - `megabyte_25k_1.2836014032363892.pt`
@@ -7,11 +17,7 @@
   Produces text as seen below. Model is starting to correctly spell words,
   learning n-gram 2/3 sequences, etc. Is continuing to converge. Trained for just
   over 12 hours on RTX 3060 Ti. (Full convergence on RTX 3060 Ti would take roughly
-  50 hours).
-
-## About
-
-Meta MegaByte model experiments.
+  50 hours). Final validation loss is ~1.28 with a perplexity of 3.59.
 
 ## Training
 
