@@ -5,7 +5,9 @@
 Meta MegaByte model experiments. \
 Based on [MEGABYTE-pytorch](https://github.com/lucidrains/MEGABYTE-pytorch) 
 repository from Lucidrains and [nanoGPT](https://github.com/karpathy/nanoGPT)
-from Andrej Kapathy
+from Andrej Kapathy.
+
+All training runs available publicly on [Neptune.ai](https://app.neptune.ai/miscellaneousstuff/megabyte-training/).
 
 ## TODO
 
