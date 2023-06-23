@@ -1,5 +1,6 @@
 import os
 import neptune
+import math
 
 import gzip
 import torch
@@ -16,7 +17,7 @@ from lr_sched import polynomial_decay_lr_schedule
 
 # Hyperparameters
 NUM_BATCHES               = int(1e5)
-BATCH_SIZE                = 4 
+BATCH_SIZE                = 4
 GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY            = 100
 GENERATE_EVERY            = 500
@@ -26,7 +27,7 @@ WARMUP_ITERS              = 500         # Taken from from MegaByte paper
 ADAM_BETA_1               = 0.9         # Taken from from MegaByte paper
 ADAM_BETA_2               = 0.98        # Taken from from MegaByte paper
 LR_DECAY_ITERS            = NUM_BATCHES # max_iters per Chinchilla?
-
+DECAY_LR                  = True
 MAX_LEARNING_RATE         = 2e-4 # Taken from from MegaByte paper
 MIN_LEARNING_RATE         = 2e-5 # Common to do MAX_LEARNING_RATE * 0.1
 
@@ -53,19 +54,22 @@ run = neptune.init_run(
     project=os.getenv("NEPTUNE_PROJECT"),
     api_token=os.getenv("NEPTUNE_KEY"))
 
-def get_lr(batch_idx, optim):
-    new_lr = polynomial_decay_lr_schedule(
-        lr=[MAX_LEARNING_RATE],
-        warmup_updates=WARMUP_ITERS,
-        force_anneal=None,
-        end_learning_rate=MIN_LEARNING_RATE,
-        zero_lr_warmup_steps=0,
-        power=1.0,
-        total_num_update=NUM_BATCHES,
-        optimizer=optim,
-        epoch=batch_idx,
-        num_updates=batch_idx)
-    return new_lr
+# Taken from: https://github.com/karpathy/nanoGPT/blob/master/train.py
+# Learning rate decay scheduler (Cosine with Warmup)
+def get_lr(it):
+    # 1) Linear warmup for warmup_iters steps
+    if it < WARMUP_ITERS:
+        return MAX_LEARNING_RATE * it / WARMUP_ITERS
+    
+    # 2) If it > lr_decay_iters, return min learning rate
+    if it > NUM_BATCHES:
+        return MIN_LEARNING_RATE
+    
+    # 3) In between, use cosine decay down to min learning rate
+    decay_ratio = (it - WARMUP_ITERS) / (NUM_BATCHES - WARMUP_ITERS)
+    assert 0 <= decay_ratio <= 1
+    coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio)) # coeff ranges 0..1
+    return MIN_LEARNING_RATE + coeff * (MAX_LEARNING_RATE - MIN_LEARNING_RATE)
 
 def cycle(loader):
         while True:
@@ -155,6 +159,13 @@ def go(model,
     # scaler = GradScaler()
 
     for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10., desc='training'):
+        # Set LR
+        lr = get_lr(i) if DECAY_LR else MAX_LEARNING_RATE
+        for param_group in optim.param_groups:
+            param_group['lr'] = lr
+        run["lr"].append(lr)
+
+        # Perform one GRADIENT_ACCUMULATE number of forward and backward passes, then update model
         loss = train(model, train_loader)
         print(f'training loss: {loss.item()}')
         torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
@@ -162,11 +173,15 @@ def go(model,
         # scaler.step(optim)
         # scaler.update()
 
+        # Zero gradients
         optim.zero_grad()
+
+        # Validate every `n` steps (because it's time consuming)
         if i % VALIDATE_EVERY == 0:
             vloss = test(model, val_loader)
             print(f'validation loss: {vloss.item()}')
 
+        # Save best model every `n` steps. Set this to be high as the models are huge
         if vloss < best_val:
             best_val = vloss
             torch.save(
@@ -175,7 +190,8 @@ def go(model,
             torch.save(
                 model.state_dict(),
                 f"./megabyte_{i}_{vloss}.pt")
-                
+        
+        # Generate a sequence from a prompt every once in a while
         if i != 0 and i % GENERATE_EVERY == 0:
             generate(model, val_dataset)
 
