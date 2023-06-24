@@ -22,7 +22,10 @@ All training runs available publicly on [Neptune.ai](https://app.neptune.ai/misc
    - [x] More or less the same as no LR schedule. Very slightly worse.
 - [x] Double Batch Size from 4 to 8 (Effective 16 to 32)
    - [x] Naive Attempt: Slightly worse convergence (Neptune: [MEG-18](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-18&type=run))
-   - [ ] LR (6e-4 to 6e-5): (Neptune: [MEG-19](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-19&type=run))
+ - [x] LR (6e-4 to 6e-5): (Neptune: [MEG-19](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-19&type=run))
+    - [x] (BS := 8) Faster and better convergence per training step.
+          However, validation loss vs wall-clock time is worse, clear trade-off.
+    - [ ] (BS := 4) _?
 
 ## Pre-Trained Models
 
