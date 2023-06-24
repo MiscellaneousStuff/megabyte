@@ -25,7 +25,7 @@ All training runs available publicly on [Neptune.ai](https://app.neptune.ai/misc
  - [x] LR (6e-4 to 6e-5):
     - [x] (BS := 8, Neptune: [MEG-19](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-19&type=run)) Faster and better convergence per training step.
           However, validation loss vs wall-clock time is worse, clear trade-off.
-    - [ ] (BS := 4, Neptune: [MEG-20](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-20&type=run)) Initial convergence faster, but plateaus early around batch 1,700.
+    - [x] (BS := 4, Neptune: [MEG-20](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-20&type=run)) Learning rate too high for this batch size. Training loss plateaus then gets worse, validation loss stays the same.
 
 ## Pre-Trained Models
 
