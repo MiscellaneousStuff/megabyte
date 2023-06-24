@@ -19,7 +19,9 @@ def polynomial_decay_lr_schedule(
         warmup_factor = 1.0 / warmup_updates
     else:
         warmup_factor = 1
-    optimizer.set_lr(warmup_factor * current_lr)
+    
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = warmup_factor * current_lr
 
     lrs = lr
     if force_anneal is None or epoch < force_anneal:
@@ -27,10 +29,12 @@ def polynomial_decay_lr_schedule(
         next_lr = lrs[min(epoch, len(lrs) - 1)]
     else:
         # annneal based on lr_shrink
-        next_lr = optimizer.get_lr()
+        next_lr = optimizer.param_groups[0]["lr"] # = optimizer.get_lr()
 
     current_lr = next_lr
-    optimizer.set_lr(warmup_factor * current_lr)
+    
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = warmup_factor * current_lr
 
     if zero_lr_warmup_steps > 0 and num_updates <= zero_lr_warmup_steps:
         lr = 0
@@ -51,5 +55,8 @@ def polynomial_decay_lr_schedule(
             total_num_update - warmup
         )
         lr = lr_range * pct_remaining**power + end_learning_rate
-    optimizer.set_lr(lr)
-    return optimizer.get_lr()
+    
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = warmup_factor * current_lr
+
+    return optimizer.param_groups[0]["lr"] # optimizer.get_lr()

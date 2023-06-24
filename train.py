@@ -1,6 +1,7 @@
 import os
 import neptune
 import math
+import random
 
 import gzip
 import torch
@@ -13,9 +14,9 @@ import tqdm
 from torch.utils.data import DataLoader, Dataset
 
 import megabyte
-from lr_sched import polynomial_decay_lr_schedule
 
 # Hyperparameters
+RANDOM_SEED               = 42
 NUM_BATCHES               = int(1e5)
 BATCH_SIZE                = 4
 GRADIENT_ACCUMULATE_EVERY = 4
@@ -39,6 +40,10 @@ DIM         = (768, 512, 256)
 DEPTH       = (6, 4, 2)
 MAX_SEQ_LEN = (512, 4, 4)
 FLASH_ATTN  = False
+
+torch.manual_seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
+random.seed(RANDOM_SEED)
 
 def load_env(file_path):
     with open(file_path, 'r') as f:
