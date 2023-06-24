@@ -28,7 +28,7 @@ All training runs available publicly on [Neptune.ai](https://app.neptune.ai/misc
     - [x] (BS := 4, Neptune: [MEG-20](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-20&type=run)) Learning rate too high for this batch size. Training loss plateaus then gets worse, validation loss stays the same.
        - [x] AMP (Neptune: [MEG-21](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-21&type=run)). This experiment fixed the loss scaling. Achieves the best validation loss
        at 1.29, gradient eventually exploded at around step 7,000. Best to use 3e-4 instead of 6e-4 as maximum learning rate.
-       
+          - [ ] Attempted Continuation (Neptune: [MEG-22](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-22&type=run)). Unsuccessful, maybe best performance reached, or because optimiser state also wasn't restored.
 ## Pre-Trained Models
 
 - `megabyte_25k_1.2836014032363892.pt`
