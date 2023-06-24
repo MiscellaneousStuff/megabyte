@@ -11,8 +11,18 @@ All training runs available publicly on [Neptune.ai](https://app.neptune.ai/misc
 
 ## TODO
 
-- [ ] Create training script
+- [x] Create training script
    - [x] Add Neptune.ai logging
+   - [x] Add cosine learning rate scheduler
+   - [x] Add weight initialisation based on MegaByte paper
+
+## Experiments
+
+- [x] Baseline Lucidrains plus Cosine LR (Neptune: MEG-16)
+   - [x] More or less the same as no LR schedule. Very slightly worse.
+- [x] Double Batch Size from 4 to 8 (Effective 16 to 32)
+   - [x] Naive Attempt: Slightly worse convergence (Neptune: MEG-18)
+   - [ ] LR (6e-4 to 6e-5): (Neptune: MEG-19)
 
 ## Pre-Trained Models
 
