@@ -12,10 +12,12 @@ import random
 import tqdm
 
 from torch.utils.data import DataLoader, Dataset
+from torch.cuda.amp.grad_scaler import GradScaler
 
 import megabyte
 
 # Hyperparameters
+AMP                       = True
 RANDOM_SEED               = 42
 NUM_BATCHES               = int(1e5)
 BATCH_SIZE                = 4
@@ -29,8 +31,8 @@ ADAM_BETA_1               = 0.9         # Taken from from MegaByte paper
 ADAM_BETA_2               = 0.98        # Taken from from MegaByte paper
 LR_DECAY_ITERS            = NUM_BATCHES # max_iters per Chinchilla?
 DECAY_LR                  = True
-MAX_LEARNING_RATE         = 2e-4 # Taken from from MegaByte paper
-MIN_LEARNING_RATE         = 2e-5 # Common to do MAX_LEARNING_RATE * 0.1
+MAX_LEARNING_RATE         = 6e-4 # 2e-4 # Taken from from MegaByte paper
+MIN_LEARNING_RATE         = 6e-5 # 2e-5 # Common to do MAX_LEARNING_RATE * 0.1
 
 # Model Parameters
 DIM_HEAD    = 64
@@ -56,6 +58,7 @@ def load_env(file_path):
 load_env(".env")
 
 run = neptune.init_run(
+    name="AMP_TEST_COSINE_LR",
     project=os.getenv("NEPTUNE_PROJECT"),
     api_token=os.getenv("NEPTUNE_KEY"))
 
@@ -109,13 +112,13 @@ class TextSamplerDataset(Dataset):
 
 # amp = True
 
-def train(model, train_loader):
+def train(model, scaler, train_loader):
     model.train()
-    for __ in range(GRADIENT_ACCUMULATE_EVERY):
-        with torch.autocast("cuda", dtype=torch.bfloat16):
+    for _ in range(GRADIENT_ACCUMULATE_EVERY):
+        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=AMP):
             loss = model(next(train_loader), return_loss = True)
-            loss.backward()
-            # scaler.scale(loss).backward()
+            # loss.backward()
+            scaler.scale(loss).backward()
 
     run["loss"].append(loss)
     
@@ -161,7 +164,7 @@ def go(model,
         model.parameters(),
         lr=MAX_LEARNING_RATE,
         betas=(ADAM_BETA_1, ADAM_BETA_2))
-    # scaler = GradScaler()
+    scaler = GradScaler()
 
     for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10., desc='training'):
         # Set LR
@@ -171,12 +174,12 @@ def go(model,
         run["lr"].append(lr)
 
         # Perform one GRADIENT_ACCUMULATE number of forward and backward passes, then update model
-        loss = train(model, train_loader)
+        loss = train(model, scaler, train_loader)
         print(f'training loss: {loss.item()}')
         torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
         optim.step()
-        # scaler.step(optim)
-        # scaler.update()
+        scaler.step(optim)
+        scaler.update()
 
         # Zero gradients
         optim.zero_grad()
