@@ -36,10 +36,10 @@ MIN_LEARNING_RATE         = 6e-5 # 2e-5 # Common to do MAX_LEARNING_RATE * 0.1
 
 # Model Parameters
 DIM_HEAD    = 64
-HEADS       = 8
+HEADS       = 8 # 12
 NUM_TOKENS  = 256
-DIM         = (768, 512, 256)
-DEPTH       = (6, 4, 2)
+DIM         = (768, 512, 256) # (1024, 512, 256)
+DEPTH       = (6, 4, 2) # (12, 4, 2)
 MAX_SEQ_LEN = (512, 4, 4)
 FLASH_ATTN  = False
 
@@ -58,7 +58,7 @@ def load_env(file_path):
 load_env(".env")
 
 run = neptune.init_run(
-    name="AMP_TEST_COSINE_LR",
+    name="",
     project=os.getenv("NEPTUNE_PROJECT"),
     api_token=os.getenv("NEPTUNE_KEY"))
 
@@ -166,6 +166,8 @@ def go(model,
         betas=(ADAM_BETA_1, ADAM_BETA_2))
     scaler = GradScaler()
 
+    # optim.load_state_dict(torch.load("./megabyte_4200_1.292237401008606.pt"))
+
     for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10., desc='training'):
         # Set LR
         lr = get_lr(i) if DECAY_LR else MAX_LEARNING_RATE
@@ -196,8 +198,8 @@ def go(model,
                 model.state_dict(),
                 f"./megabyte_{i}_{vloss}.pt")
             torch.save(
-                model.state_dict(),
-                f"./megabyte_{i}_{vloss}.pt")
+                optim.state_dict(),
+                f"./megabyte_{i}_{vloss}_optim.pt")
         
         # Generate a sequence from a prompt every once in a while
         if i != 0 and i % GENERATE_EVERY == 0:
@@ -227,14 +229,17 @@ def main():
     val_loader    = cycle(DataLoader(val_dataset, batch_size = BATCH_SIZE))
 
     model = megabyte.MEGABYTE(
-        dim_head=64,
-        heads=8,
-        num_tokens=256,
-        dim=(768, 512, 256),
-        depth=(6, 4, 2),
-        max_seq_len=(512, 4, 4),
-        flash_attn=False
+        dim_head=DIM_HEAD,
+        heads=HEADS,
+        num_tokens=NUM_TOKENS,
+        dim=DIM,
+        depth=DEPTH,
+        max_seq_len=MAX_SEQ_LEN,
+        flash_attn=FLASH_ATTN
     ).cuda()
+
+    # model.load_state_dict(torch.load("./PATH_TO_MODEL_CHECKPOINT.pt"))
+    # optim.load_state_dict(torch.load("./PATH_TO_OPTIM_CHECKPOINT.pt"))
 
     with open('output.txt', 'w') as f:
         with contextlib.redirect_stdout(f):
