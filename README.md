@@ -37,7 +37,7 @@ All training runs available publicly on [Neptune.ai](https://app.neptune.ai/misc
   MegaByte model trained on enwik8 for 25k batches (~36.44x passes over the dataset).
   Produces text as seen below. Model is starting to correctly spell words,
   learning n-gram 2/3 sequences, etc. Is continuing to converge. Trained for just
-  over 12 hours on RTX 3060 Ti. (Full convergence on RTX 3060 Ti would take roughly
+  over 12 hours on RTX 3060 Ti. (Full training completion on RTX 3060 Ti would take roughly
   50 hours). Final validation loss is ~1.28 with a perplexity of 3.59.
 
 ## Training
