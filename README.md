@@ -18,6 +18,21 @@ All training runs available publicly on [Neptune.ai](https://app.neptune.ai/misc
 
 ## Experiments
 
+### `enwik8` Dataset
+
+#### Model
+```python
+DIM_HEAD    = 64
+HEADS       = 8
+NUM_TOKENS  = 256
+DIM         = (768, 512, 256)
+DEPTH       = (6, 4, 2)
+MAX_SEQ_LEN = (512, 4, 4)
+FLASH_ATTN  = False
+```
+
+#### Experiment Log
+
 - [x] Baseline Lucidrains plus Cosine LR (Neptune: [MEG-16](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-16&type=run))
    - [x] More or less the same as no LR schedule. Very slightly worse. 
 - [x] Double Batch Size from 4 to 8 (Effective 16 to 32)
@@ -33,6 +48,11 @@ All training runs available publicly on [Neptune.ai](https://app.neptune.ai/misc
 - [x] 6e-4 with Batch Size 40 (Effective 160) on A100 40GB on Lambda Cloud (Neptune: [MEG-39](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-39&type=run)). Same as A10 24GB
 but with even better performance vs wall-clock time.
 
+### `RedPajama-Data-1T-Sample` Dataset
+
+NOTES:
+- Trying [SophiaG](https://arxiv.org/pdf/2305.14342.pdf) optimiser instead of Adam
+- Trying `RedPajama-Data-1T-Sample` instead of `enwik8`
 
 ## Pre-Trained Models
 
