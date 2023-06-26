@@ -11,28 +11,36 @@ import contextlib
 import random
 import tqdm
 
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, IterableDataset
 from torch.cuda.amp.grad_scaler import GradScaler
 
 import megabyte
+from sophiag import SophiaG
+from datasets import load_dataset, Dataset
+
+# Optimisers
+optimiser_adam            = "adam"
+optimiser_sophiag         = "sophiag"
 
 # Hyperparameters
 AMP                       = True
 RANDOM_SEED               = 42
 NUM_BATCHES               = int(1e5)
-BATCH_SIZE                = 4
+BATCH_SIZE                = 4 * 2
 GRADIENT_ACCUMULATE_EVERY = 4
 VALIDATE_EVERY            = 100
 GENERATE_EVERY            = 500
-PRIME_LEN                 = 100
+PRIME_LEN                 = 100 
 SEQ_LEN                   = 8192        # Taken from from MegaByte paper
 WARMUP_ITERS              = 500         # Taken from from MegaByte paper
 ADAM_BETA_1               = 0.9         # Taken from from MegaByte paper
 ADAM_BETA_2               = 0.98        # Taken from from MegaByte paper
 LR_DECAY_ITERS            = NUM_BATCHES # max_iters per Chinchilla?
 DECAY_LR                  = True
-MAX_LEARNING_RATE         = 6e-4 # 2e-4 # Taken from from MegaByte paper
-MIN_LEARNING_RATE         = 6e-5 # 2e-5 # Common to do MAX_LEARNING_RATE * 0.1
+MAX_LEARNING_RATE         = 3e-4 # 6e-4 # 2e-4 # Taken from from MegaByte paper
+MIN_LEARNING_RATE         = 3e-4 # 6e-5 # 2e-5 # Common to do MAX_LEARNING_RATE * 0.1
+WEIGHT_DECAY              = 0.1
+OPTIMISER                 = optimiser_sophiag
 
 # Model Parameters
 DIM_HEAD    = 64
@@ -46,6 +54,12 @@ FLASH_ATTN  = False
 torch.manual_seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 random.seed(RANDOM_SEED)
+
+def get_reserved_mem_gb():
+    device = torch.cuda.current_device()
+    reserved = torch.cuda.memory_reserved(device)
+    reserved_gb = reserved / 1024 / 1024 / 1024
+    return reserved_gb
 
 def load_env(file_path):
     with open(file_path, 'r') as f:
@@ -79,10 +93,12 @@ def get_lr(it):
     coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio)) # coeff ranges 0..1
     return MIN_LEARNING_RATE + coeff * (MAX_LEARNING_RATE - MIN_LEARNING_RATE)
 
-def cycle(loader):
-        while True:
-            for data in loader:
-                yield data
+def cycle(loader, infinite=True):
+    while True:
+        for data in loader:
+            yield data
+        if not infinite:
+            break
 
 def decode_token(token):
     if 32 <= token <= 126:
@@ -93,6 +109,32 @@ def decode_token(token):
 def decode_tokens(tokens):
     return ''.join(list(map(decode_token, tokens)))
 
+class WrappedDataset(IterableDataset):
+    def __init__(self, huggingface_dataset, seq_len, infinite=True):
+        self.huggingface_dataset = huggingface_dataset
+        self.seq_len = seq_len
+        self.infinite = infinite
+
+    def __iter__(self):
+        buffer = torch.tensor([], dtype=torch.long)
+        while True:  # Infinite loop over the dataset
+            for row in self.huggingface_dataset:
+                formatted_text = row['text']
+                x = np.frombuffer(formatted_text.encode(), dtype=np.uint8).copy()
+                buffer = torch.cat((buffer, torch.from_numpy(x)), dim=0)
+                while len(buffer) >= self.seq_len:
+                    yield buffer[:self.seq_len]\
+                        .long() \
+                        .pin_memory() \
+                        .to("cuda", non_blocking=True)
+                    buffer = buffer[self.seq_len:]
+            if not self.infinite:
+                if len(buffer):
+                    yield buffer\
+                        .long() \
+                        .pin_memory() \
+                        .to("cuda", non_blocking=True)
+                break
 
 class TextSamplerDataset(Dataset):
     def __init__(self, data, seq_len):
@@ -107,10 +149,6 @@ class TextSamplerDataset(Dataset):
 
     def __len__(self):
         return self.data.size(0) // self.seq_len
-    
-# model = torch.compile(model)
-
-# amp = True
 
 def train(model, scaler, train_loader):
     model.train()
@@ -134,8 +172,9 @@ def test(model, val_loader):
 
 def generate(model, val_dataset, PRIME_LEN=100):
     model.eval()
-    inp = random.choice(val_dataset)[:-1]
+    inp = next(iter(val_dataset))[:-1]
     prime_inp = inp[:PRIME_LEN]
+    # print("prime_inp:", prime_inp.shape)
     prime = decode_tokens(prime_inp)
     print(f'%s \n\n %s', (prime, '*' * 100))
     run["prompts"].append(prime)
@@ -160,15 +199,24 @@ def go(model,
 
     best_val = float("inf")
 
-    optim = torch.optim.Adam(
+    if OPTIMISER == optimiser_adam:
+        optim = torch.optim.Adam(
         model.parameters(),
         lr=MAX_LEARNING_RATE,
         betas=(ADAM_BETA_1, ADAM_BETA_2))
+    else:
+        optim = SophiaG(
+            model.parameters(),
+            lr=MAX_LEARNING_RATE,
+            betas=(ADAM_BETA_1, ADAM_BETA_2),
+            weight_decay=0.1)
+    
     scaler = GradScaler()
 
     # optim.load_state_dict(torch.load("./megabyte_4200_1.292237401008606.pt"))
 
-    for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10., desc='training'):
+    pbar = tqdm.tqdm(range(NUM_BATCHES), mininterval=10., desc='training')
+    for i in pbar:
         # Set LR
         lr = get_lr(i) if DECAY_LR else MAX_LEARNING_RATE
         for param_group in optim.param_groups:
@@ -178,6 +226,8 @@ def go(model,
         # Perform one GRADIENT_ACCUMULATE number of forward and backward passes, then update model
         loss = train(model, scaler, train_loader)
         print(f'training loss: {loss.item()}')
+        mem_gb = get_reserved_mem_gb()
+        pbar.set_description(f"Reserved Memory (GB): {mem_gb}, loss: {loss.item()}")
         torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
         optim.step()
         scaler.step(optim)
@@ -190,6 +240,7 @@ def go(model,
         if i % VALIDATE_EVERY == 0:
             vloss = test(model, val_loader)
             print(f'validation loss: {vloss.item()}')
+            pbar.set_description(f"Reserved Memory (GB): {mem_gb}, loss: {loss.item()}, vloss: {vloss.item()}")
 
         # Save best model every `n` steps. Set this to be high as the models are huge
         if vloss < best_val:
@@ -205,14 +256,17 @@ def go(model,
         if i != 0 and i % GENERATE_EVERY == 0:
             generate(model, val_dataset)
 
-def load_dataset(src):
-    with gzip.open(src) as file:
-        x = np.frombuffer(file.read(int(95e6)), dtype=np.uint8).copy()
+# def load_dataset(src):
+#     with gzip.open(src) as file:
+#         x = np.frombuffer(file.read(int(95e6)), dtype=np.uint8).copy()
 
-        train_x, valid_x = np.split(x, [int(90e6)])
-        data_train, data_val = map(torch.from_numpy, (train_x, valid_x))
+#         train_x, valid_x = np.split(x, [int(90e6)])
+#         data_train, data_val = map(torch.from_numpy, (train_x, valid_x))
 
-    return data_train, data_val
+#     return data_train, data_val
+
+# def load_dataset():
+#     pass
 
 def main():
     # Set hyperparameters in log
@@ -221,12 +275,20 @@ def main():
     for k in config_keys:
         run[k] = globals()[k]
 
-    data_train, data_val = load_dataset("./data/enwik8.gz")
+    # enwik8
+    # data_train, data_val = load_dataset("./data/enwik8.gz")
+    # train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
+    # val_dataset   = TextSamplerDataset(data_val, SEQ_LEN)
+    # train_loader  = cycle(DataLoader(train_dataset, batch_size = BATCH_SIZE))
+    # val_loader    = cycle(DataLoader(val_dataset, batch_size = BATCH_SIZE))
 
-    train_dataset = TextSamplerDataset(data_train, SEQ_LEN)
-    val_dataset   = TextSamplerDataset(data_val, SEQ_LEN)
-    train_loader  = cycle(DataLoader(train_dataset, batch_size = BATCH_SIZE))
-    val_loader    = cycle(DataLoader(val_dataset, batch_size = BATCH_SIZE))
+    # HuggingFace: RedPajama-Data-1T-Sample
+    raw_ds = load_dataset("togethercomputer/RedPajama-Data-1T-Sample")
+    ds = raw_ds["train"].train_test_split(test_size=0.01)
+    train_dataset = WrappedDataset(ds["train"], SEQ_LEN, infinite=False)
+    val_dataset   = WrappedDataset(ds["test"], SEQ_LEN, infinite=False)
+    train_loader  = cycle(DataLoader(train_dataset, batch_size = BATCH_SIZE), infinite=False)
+    val_loader    = cycle(DataLoader(val_dataset, batch_size = BATCH_SIZE), infinite=False)
 
     model = megabyte.MEGABYTE(
         dim_head=DIM_HEAD,
