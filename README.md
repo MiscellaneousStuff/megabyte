@@ -50,9 +50,23 @@ but with even better performance vs wall-clock time.
 
 ### `RedPajama-Data-1T-Sample` Dataset
 
+#### Model
+
+```python
+DIM_HEAD    = 64
+HEADS       = 16
+NUM_TOKENS  = 256
+DIM         = (1024, 512, 256)
+DEPTH       = (24, 4, 2) # (12, 4, 2)
+MAX_SEQ_LEN = (512, 4, 4)
+FLASH_ATTN  = False
+```
+
 NOTES:
 - Trying [SophiaG](https://arxiv.org/pdf/2305.14342.pdf) optimiser instead of Adam
 - Trying `RedPajama-Data-1T-Sample` instead of `enwik8`
+
+- [ ] Batch Size := 20 on A6000 48GB (Neptune: [MEG-67](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-67&type=run&compare=MwJiA))
 
 ## Pre-Trained Models
 
