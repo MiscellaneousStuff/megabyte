@@ -67,7 +67,7 @@ NOTES:
 - Trying `RedPajama-Data-1T-Sample` instead of `enwik8`
 
 - [ ] Batch Size := 20 on A6000 48GB (Neptune: [MEG-67](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-67&type=run&compare=MwJiA))
-
+   - [ ] Training Continuation (lr=3e-4 too high for larger 270M model vs 52M model) (Neptune: [MEG-72](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-72&type=run))
 ## Pre-Trained Models
 
 - `megabyte_25k_1.2836014032363892.pt`
