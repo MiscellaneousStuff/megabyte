@@ -71,7 +71,7 @@ NOTES:
       - Model gradients exploded as learning rate too high at 3e-4. Should just use original 2e-4
         as suggested in other forks and original paper. Possibly SophiaG also doesn't like higher LR
         for this as well?
-- [ ] Batch Size := 40 on H100 80GB VRAM, LR=2e-4 (Neptune: [MEG-77](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-77&type=run&compare=MwJiA))
+- [ ] Batch Size := 40 on H100 80GB VRAM, LR=2e-4 (Neptune: [MEG-78](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-78&type=run&compare=MwJiA))
 <!--
 - [ ] Same as above but switching LR back to 2e-4 (Neptune: [MEG-75](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-75&type=run&compare=MwJiA))
 -->
