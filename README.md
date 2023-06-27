@@ -71,7 +71,8 @@ NOTES:
       - Model gradients exploded as learning rate too high at 3e-4. Should just use original 2e-4
         as suggested in other forks and original paper. Possibly SophiaG also doesn't like higher LR
         for this as well?
-- [ ] Same as above but switching LR back to 2e-4, attempting full 1 epoch run over 12 hours. (Neptune: [MEG-80](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-80&type=run&compare=MwJiA))
+- [x] Same as above but switching LR back to 2e-4, attempting full 1 epoch run over 12 hours. (Neptune: [MEG-80](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-80&type=run&compare=MwJiA)). This lasted up to around epoch 2000 before gradients exploded. Needs longer warmup, high starting LR fine but needs to decay more.
+- [x] Same as above using Adam optimiser. SophiaG is overall just better, faster convergence everything, but needs to be tuned a bit. (Neptune: [MEG-83](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&shortId=MEG-83&type=run&compare=OwDgNATGDMQ)).
 
 ## Pre-Trained Models
 
