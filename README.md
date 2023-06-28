@@ -73,7 +73,10 @@ NOTES:
         for this as well?
 - [x] Same as above but switching LR back to 2e-4, attempting full 1 epoch run over 12 hours. (Neptune: [MEG-80](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-80&type=run&compare=MwJiA)). This lasted up to around epoch 2000 before gradients exploded. Needs longer warmup, high starting LR fine but needs to decay more.
 - [x] Same as above using Adam optimiser. SophiaG is overall just better, faster convergence everything, but needs to be tuned a bit. (Neptune: [MEG-83](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&shortId=MEG-83&type=run&compare=OwDgNATGDMQ)).
-- [ ] Try 1e-4 LR. SophiaG seems to be very sensitive to LR, or maybe just model size? Dunno something is very sensitive as gradient always explodes. (Neptune: [MEG-87](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-87&type=run&compare=OwDgNATGAslA))
+- [x] Try 1e-4 LR. SophiaG seems to be very sensitive to LR, or maybe just model size? Dunno something is very sensitive as gradient always explodes. (Neptune: [MEG-87](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-87&type=run&compare=OwDgNATGAslA)). Plateua'd much later on in training. Suggests that issue with gradients is related to either the LR or some other aspect of SophiaG.
+
+- [ ] Changed Rho to 0.05, changed grad clip to 1.0, changed lr back to 2e-4 to 2e-5, still warmup
+      of 2000. (Neptune: [MEG-93](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-93&type=run&compare=OwDgNOCMQ))
 
 ## Pre-Trained Models
 
