@@ -75,8 +75,9 @@ NOTES:
 - [x] Same as above using Adam optimiser. SophiaG is overall just better, faster convergence everything, but needs to be tuned a bit. (Neptune: [MEG-83](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&shortId=MEG-83&type=run&compare=OwDgNATGDMQ)).
 - [x] Try 1e-4 LR. SophiaG seems to be very sensitive to LR, or maybe just model size? Dunno something is very sensitive as gradient always explodes. (Neptune: [MEG-87](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-87&type=run&compare=OwDgNATGAslA)). Plateua'd much later on in training. Suggests that issue with gradients is related to either the LR or some other aspect of SophiaG.
 
-- [ ] Changed Rho to 0.05, changed grad clip to 1.0, changed lr back to 2e-4 to 2e-5, still warmup
-      of 2000. (Neptune: [MEG-93](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-93&type=run&compare=OwDgNOCMQ))
+- [x] Changed Rho to 0.05, changed grad clip to 1.0, changed lr back to 2e-4 to 2e-5, still warmup
+      of 2000. (Neptune: [MEG-93](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-93&type=run&compare=OwDgNOCMQ)).
+      Made no difference, gonna switch back to Adam.
 
 ## Pre-Trained Models
 
