@@ -79,7 +79,7 @@ NOTES:
       of 2000. (Neptune: [MEG-93](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=metadata&shortId=MEG-93&type=run&compare=OwDgNOCMQ)).
       Made no difference, gonna switch back to Adam.
 
-### `TinyStories`
+### `TinyStories Instruct`
 
 - [x] Initial Training Run (Neptune: [MEG-142](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-142&type=run&compare=IwFmBpiA)). Very successful, using 512 seq len, GPT-Neo tokeniser.
 
