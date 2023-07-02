@@ -81,9 +81,12 @@ NOTES:
 
 ### `TinyStories Instruct`
 
-- [x] Initial Training Run (Neptune: [MEG-142](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-142&type=run&compare=IwFmBpiA)). Very successful, using 512 seq len, GPT-Neo tokeniser.
-   - [x] Continuation (Neptune: [MEG-143](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-143&type=run&compare=IwFmBpiA)). Continued to get better.
-      - [ ] Further Continuation (Neptune: [MEG-144](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-144&type=run&compare=IwFmBpiA)).
+- [x] Initial Training Run
+   (Neptune: [MEG-142](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-142&type=run&compare=IwFmBpiA), [MEG-143](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-143&type=run&compare=IwFmBpiA),
+   [MEG-144](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-144&type=run&compare=IwFmBpiA),
+   [MEG-147](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-147&type=run&compare=IwFmBpiA),
+   [MEG-149](https://app.neptune.ai/miscellaneousstuff/megabyte-training/runs/details?viewId=standard-view&detailsTab=charts&shortId=MEG-149&type=run&compare=IwFmBpiA)).
+   Very successful, using 512 seq len, GPT-Neo tokeniser.
 
 ## Pre-Trained Models
 
